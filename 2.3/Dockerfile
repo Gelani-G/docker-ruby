@@ -1,10 +1,19 @@
 FROM ruby:2.3.8-jessie
 
+RUN rm /etc/apt/sources.list
+RUN echo "Acquire::Check-Valid-Until no;" > /etc/apt/apt.conf.d/99-no-check-valid-until
+RUN echo "deb http://archive.debian.org/debian jessie main" >> /etc/apt/sources.list.d/jessie_main.list
+RUN echo "deb-src http://archive.debian.org/debian/ jessie main" >> /etc/apt/sources.list.d/jessie_main.list
+RUN echo "deb http://archive.debian.org/debian jessie contrib" >> /etc/apt/sources.list.d/jessie_contrib.list
+RUN echo "deb-src http://archive.debian.org/debian/ jessie contrib" >> /etc/apt/sources.list.d/jessie_contrib.list
+RUN echo "deb http://archive.debian.org/debian jessie non-free" >> /etc/apt/sources.list.d/jessie_non_free.list
+RUN echo "deb-src http://archive.debian.org/debian/ jessie non-free" >> /etc/apt/sources.list.d/jessie_non_free.list
+
 RUN sed -i 's/mozilla\/DST_Root_CA_X3\.crt/!mozilla\/DST_Root_CA_X3.crt/' /etc/ca-certificates.conf \
   && update-ca-certificates
 
 RUN apt-get update -qq \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -yq --force-yes --no-install-recommends \
     locales \
     make \
     gcc \
@@ -18,6 +27,9 @@ RUN apt-get update -qq \
     libssl-dev \
     libgmp3-dev \
     git-core \
+    openssh-server \
+    openssh-sftp-server \
+    openssh-client=1:6.7p1-5+deb8u4 \
     ssh \
     libmagickcore-dev \
     libmagickwand-dev \
@@ -36,7 +48,7 @@ RUN apt-get update -qq \
   && curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
   && echo "deb https://apt-archive.postgresql.org/pub/repos/apt jessie-pgdg main 11" > /etc/apt/sources.list.d/pgdg.list \
   && apt-get update -qq \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -yq --force-yes --no-install-recommends \
     postgresql-client-11 \
     libpq-dev \
   && apt-get clean \
@@ -45,8 +57,10 @@ RUN apt-get update -qq \
 
 RUN curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
   && curl -fsSL https://deb.nodesource.com/setup_14.x | bash - ;\
-  apt-get install -y nodejs \
-  && npm install -g yarn
+  apt-get install -y --force-yes nodejs npm \
+  && npm install -g yarn \
+  && ln -s /usr/bin/nodejs /usr/bin/node \
+  && apt-get install -y --force-yes nodejs-legacy
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Yekaterinburg /etc/localtime \
   && dpkg-reconfigure -f noninteractive tzdata \
