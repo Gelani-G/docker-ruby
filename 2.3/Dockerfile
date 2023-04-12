@@ -60,7 +60,7 @@ RUN curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
   apt-get install -y --force-yes nodejs npm \
   && npm install -g yarn \
   && ln -s /usr/bin/nodejs /usr/bin/node \
-  && apt-get install -y --force-yes nodejs-legacy
+  && apt-get install -y --force-yes nodejs
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Yekaterinburg /etc/localtime \
   && dpkg-reconfigure -f noninteractive tzdata \
